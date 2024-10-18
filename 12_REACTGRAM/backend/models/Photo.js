@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const {Schema} = mongoose
 
-const photoSchema = newSchema({
+const photoSchema = new Schema({
     image: String,
     title: String,
     likes: Array,
