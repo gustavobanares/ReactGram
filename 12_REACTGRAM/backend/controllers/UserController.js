@@ -51,17 +51,17 @@ const register = async (req, res) => {
 
 // Login do usuário
 const login = async (req, res) => {
-    const { email, password } = req.body; // Correção: Desestruturação do objeto
+    const { email, password } = req.body;
 
     try {
-        // Verifica se o usuário existe
-        const user = await User.findOne({ email });
+        // Busca o usuário no banco de dados
+        const user = await User.findOne({ email: email.trim().toLowerCase() });
 
         if (!user) {
             return res.status(404).json({ errors: ['Usuário não encontrado.'] });
         }
 
-        // Verifica se a senha é válida
+        // Verifica a senha
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(422).json({ errors: ['Senha inválida.'] });
@@ -71,7 +71,7 @@ const login = async (req, res) => {
         res.status(200).json({
             _id: user._id,
             profileImage: user.profileImage,
-            token: generateToken(user._id), // Correção: `user._id`
+            token: generateToken(user._id),
         });
 
     } catch (error) {
