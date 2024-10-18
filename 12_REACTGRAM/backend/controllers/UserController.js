@@ -1,61 +1,85 @@
-const User = require('../models/User')
+const User = require('../models/User');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
+const jwtSecret = process.env.JWT_SECRET;
 
-const jwtSecret = process.env.JWT_SECRET
-
-// Generating user token
-const generateToken = (id) =>{
-    return jwt.sign({id}, jwtSecret, {
+// Gerando token do usuário
+const generateToken = (id) => {
+    return jwt.sign({ id }, jwtSecret, {
         expiresIn: '7d',
-    })
-}
+    });
+};
 
-// Register user and sign in
-const register = async (req, res) =>{
-    
-    const {name, email, password} = req.body
+// Registro de usuário e login
+const register = async (req, res) => {
+    const { name, email, password } = req.body;
 
-    // check if users exist
-    const user = await User.findOne({email})
+    try {
+        // Verifica se o usuário já existe
+        const user = await User.findOne({ email });
 
-    if(user){
-        res.status(422).json({errors: ['Por favor, utilize outro e-mail']})
-        return
+        if (user) {
+            return res.status(422).json({ errors: ['Por favor, utilize outro e-mail.'] });
+        }
+
+        // Gera o hash da senha
+        const salt = await bcrypt.genSalt();
+        const passwordHash = await bcrypt.hash(password, salt);
+
+        // Cria um novo usuário
+        const newUser = await User.create({
+            name,
+            email,
+            password: passwordHash,
+        });
+
+        if (!newUser) {
+            return res.status(422).json({ errors: ['Houve um erro, por favor tente mais tarde.'] });
+        }
+
+        // Retorna o token do usuário
+        res.status(201).json({
+            _id: newUser._id,
+            token: generateToken(newUser._id),
+        });
+
+    } catch (error) {
+        res.status(500).json({ errors: ['Erro no servidor.'] });
     }
+};
 
-    // Generate password hash
-    const salt = await bcrypt.genSalt()
-    const passwordHash = await bcrypt.hash(password, salt)
+// Login do usuário
+const login = async (req, res) => {
+    const { email, password } = req.body; // Correção: Desestruturação do objeto
 
-    // Create user
-    const newUser = await User.create({
-        name,
-        email,
-        password: passwordHash
-    })
+    try {
+        // Verifica se o usuário existe
+        const user = await User.findOne({ email });
 
-    // If user was created sucessfully, return the token
-    if(!newUser){
-        res.status(422).json({errors: ['Houve um erro, por favor tente mais tarde.']})
-        return
+        if (!user) {
+            return res.status(404).json({ errors: ['Usuário não encontrado.'] });
+        }
+
+        // Verifica se a senha é válida
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(422).json({ errors: ['Senha inválida.'] });
+        }
+
+        // Retorna o usuário com o token
+        res.status(200).json({
+            _id: user._id,
+            profileImage: user.profileImage,
+            token: generateToken(user._id), // Correção: `user._id`
+        });
+
+    } catch (error) {
+        res.status(500).json({ errors: ['Erro no servidor.'] });
     }
-
-    res.status(201).json({
-        _id: newUser._id,
-        token: generateToken(newUser._id)
-    })
-
-}
-
-
-// Sing user in
-const login = (req,res) =>{
-    res.send('Login')
-}
+};
 
 module.exports = {
     register,
     login,
-}
+};
