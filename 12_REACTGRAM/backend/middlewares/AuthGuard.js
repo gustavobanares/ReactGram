@@ -1,28 +1,31 @@
-const User = require('../models/User')
-const jwt = require('jsonwebtoken')
-const jwtSecret = process.env.JWT_SECRET
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
+const jwtSecret = process.env.JWT_SECRET;
 
-const authGuard = async(req, res, next) =>{
+const authGuard = async (req, res, next) => {
+    // Acessando o header corretamente como um objeto
+    const authHeader = req.headers['authorization']; 
 
- const authHeader = req.headers('authorization')
- const token = authHeader && authHeader.split('')[1]
+    // Verificando e extraindo o token no formato "Bearer <token>"
+    const token = authHeader && authHeader.split(' ')[1]; 
 
-    //  check if header has a token
-    if(!token) return res.status(401).json({errors: ['Acesso negado!']})
-
-    // check if token is valid
-    try {
-        
-        const verified = jwt.verify(token, jwtSecret)
-
-        req.user = await User.findById(verified.id).select('-password')
-
-        next()
-
-    } catch (error) {
-        res.status(401).json({errors: ['Token invalido.']})
+    // Verifica se o token está presente
+    if (!token) {
+        return res.status(401).json({ errors: ['Acesso negado!'] });
     }
 
-}
+    try {
+        // Verifica se o token é válido
+        const verified = jwt.verify(token, jwtSecret);
 
-module.exports = authGuard
+        // Busca o usuário no banco de dados sem a senha
+        req.user = await User.findById(verified.id).select('-password');
+
+        next(); // Prossegue para a próxima função
+
+    } catch (error) {
+        res.status(401).json({ errors: ['Token inválido.'] });
+    }
+};
+
+module.exports = authGuard;
