@@ -1,8 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const jwtSecret = process.env.JWT_SECRET;
 
@@ -13,34 +12,26 @@ const generateToken = (id) => {
     });
 };
 
-// Registro de usuário e login
+// Registro de usuário
 const register = async (req, res) => {
     const { name, email, password } = req.body;
 
     try {
-        // Verifica se o usuário já existe
-        const user = await User.findOne({ email });
+        const userExists = await User.findOne({ email });
 
-        if (user) {
+        if (userExists) {
             return res.status(422).json({ errors: ['Por favor, utilize outro e-mail.'] });
         }
 
-        // Gera o hash da senha
         const salt = await bcrypt.genSalt();
         const passwordHash = await bcrypt.hash(password, salt);
 
-        // Cria um novo usuário
         const newUser = await User.create({
             name,
             email,
             password: passwordHash,
         });
 
-        if (!newUser) {
-            return res.status(422).json({ errors: ['Houve um erro, por favor tente mais tarde.'] });
-        }
-
-        // Retorna o token do usuário
         res.status(201).json({
             _id: newUser._id,
             token: generateToken(newUser._id),
@@ -51,25 +42,22 @@ const register = async (req, res) => {
     }
 };
 
-// Login do usuário
+// Login de usuário
 const login = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // Busca o usuário no banco de dados
         const user = await User.findOne({ email: email.trim().toLowerCase() });
 
         if (!user) {
             return res.status(404).json({ errors: ['Usuário não encontrado.'] });
         }
 
-        // Verifica a senha
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(422).json({ errors: ['Senha inválida.'] });
         }
 
-        // Retorna o usuário com o token
         res.status(200).json({
             _id: user._id,
             profileImage: user.profileImage,
@@ -81,56 +69,58 @@ const login = async (req, res) => {
     }
 };
 
-// Get current logged in user
-const getCurrentUser = async(req, res) =>{
-    const user = req.user
+// Usuário logado atualmente
+const getCurrentUser = async (req, res) => {
+    res.status(200).json(req.user);
+};
 
-    res.status(200).json(user)
-}
+// Atualização de usuário
+const update = async (req, res) => {
+    const { name, password, bio } = req.body;
+    let profileImage = req.file ? req.file.filename : null;
 
-// Update  an user
-const update = async(req, res) =>{
-    
-    const {name, password, bio} = req.body
+    const user = await User.findById(req.user._id).select('-password');
 
-    let profileImage = null
-
-    if(req.file){
-        profileImage = req.file.filename
-    }
-
-    const reqUser = req.user
-
-    const user = await User.findById(reqUser._id).select('-password');
-
-    if(name){
-        user.name = name
-    }
-
-    if(password){
+    if (name) user.name = name;
+    if (password) {
         const salt = await bcrypt.genSalt();
-        const passwordHash = await bcrypt.hash(password, salt);
+        user.password = await bcrypt.hash(password, salt);
+    }
+    if (profileImage) user.profileImage = profileImage;
+    if (bio) user.bio = bio;
 
-        user.password = passwordHash
+    await user.save();
+
+    res.status(200).json(user);
+};
+
+// Buscar usuário por ID
+const getUserById = async (req, res) => {
+    const { id } = req.params;
+
+    // Validação de ID
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ errors: ['ID inválido.'] });
     }
 
-    if(profileImage){
-        user.profileImage = profileImage
+    try {
+        const user = await User.findById(id).select('-password');
+
+        if (!user) {
+            return res.status(404).json({ errors: ['Usuário não encontrado.'] });
+        }
+
+        res.status(200).json(user);
+
+    } catch (error) {
+        res.status(500).json({ errors: ['Erro no servidor.'] });
     }
-
-    if(bio){
-        user.bio = bio
-    }
-
-    await user.save()
-
-    res.status(200).json(user)
-
-}
+};
 
 module.exports = {
     register,
     login,
     getCurrentUser,
     update,
+    getUserById,
 };
