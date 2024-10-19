@@ -17,7 +17,7 @@ const photoInsertValidation = () => {
             return true;
         })
     ];
-};
+};  
 
 module.exports = {
     photoInsertValidation,
