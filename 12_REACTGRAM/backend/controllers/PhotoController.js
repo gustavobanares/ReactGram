@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 // Insert a photo, with a user related to it
 const insertPhoto = async (req, res) => {
     const { title } = req.body;
-    const image = req.file?.filename;  // Verificação opcional
+    const image = req.file?.filename;
 
     const reqUser = req.user;
 
@@ -16,7 +16,6 @@ const insertPhoto = async (req, res) => {
             return res.status(404).json({ errors: ['Usuário não encontrado.'] });
         }
 
-        // Create a photo
         const newPhoto = await Photo.create({
             image,
             title,
@@ -24,9 +23,17 @@ const insertPhoto = async (req, res) => {
             userName: user.name,
         });
 
-        res.status(201).json(newPhoto);
+        if (!newPhoto) {
+            return res.status(422).json({ errors: ['Erro ao criar a foto.'] });
+        }
+
+        res.status(201).json({ 
+            id: newPhoto._id, 
+            message: 'Foto criada com sucesso.', 
+            photo: newPhoto 
+        });
     } catch (error) {
-        res.status(500).json({ errors: ['Erro no servidor. Tente novamente mais tarde.'] });
+        res.status(500).json({ errors: ['Erro no servidor.'] });
     }
 };
 
@@ -70,21 +77,49 @@ const getAllPhotos = async(req, res) =>{
 }
 
 // Get user photos
-const getUserPhotos = async(req, res) =>{
+const getUserPhotos = async (req, res) => {
+    const { id } = req.params;
 
-    const {id} = req.params
+    try {
+        // Busca todas as fotos onde o userId é igual ao ID passado na URL
+        const photos = await Photo.find({ userId: id }).sort({ createdAt: -1 });
 
-    const photos = await Photo.find({userId: id})
-        .sort([['createdAt', -1]])
-        .exec()
+        if (!photos || photos.length === 0) {
+            return res.status(404).json({ errors: ['Nenhuma foto encontrada para este usuário.'] });
+        }
 
-        return res.status(200).json(photos)
+        res.status(200).json(photos);
+    } catch (error) {
+        res.status(500).json({ errors: ['Erro ao buscar fotos.'] });
+    }
+};
 
-}
+// Get photo by id
+const getPhotoById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Verificar se o ID é válido
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(404).json({ errors: ['ID inválido.'] });
+        }
+
+        const photo = await Photo.findById(id);
+
+        if (!photo) {
+            return res.status(404).json({ errors: ['Foto não encontrada.'] });
+        }
+
+        res.status(200).json(photo);
+    } catch (error) {
+        res.status(500).json({ errors: ['Erro no servidor.'] });
+    }
+};
 
 module.exports = {
     insertPhoto,
     deletePhoto,
     getAllPhotos,
     getUserPhotos,
+    getPhotoById,
 };
