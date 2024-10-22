@@ -201,7 +201,23 @@ const commentPhoto = async(req, res) =>{
 }
 
 
+// Search photos by title
+const searchPhotos = async (req, res) => {
+    const { q } = req.query;
 
+    try {
+        // Busca fotos cujo título contenha o termo 'q' (insensível a maiúsculas/minúsculas)
+        const photos = await Photo.find({ title: new RegExp(q, 'i') }).exec();
+
+        if (photos.length === 0) {
+            return res.status(404).json({ message: 'Nenhuma foto encontrada.' });
+        }
+
+        res.status(200).json(photos);
+    } catch (error) {
+        res.status(500).json({ errors: ['Erro no servidor.'] });
+    }
+};
 
 
 module.exports = {
@@ -213,4 +229,5 @@ module.exports = {
     updatePhoto,
     likePhoto,
     commentPhoto,
+    searchPhotos,
 };
