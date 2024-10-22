@@ -116,10 +116,48 @@ const getPhotoById = async (req, res) => {
     }
 };
 
+// Update a photo
+const updatePhoto = async (req, res) => {
+    const { id } = req.params;
+    const { title } = req.body;
+
+    const reqUser = req.user;
+
+    try {
+        // Verificar se o ID é válido
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(404).json({ errors: ['ID inválido.'] });
+        }
+
+        const photo = await Photo.findById(id);
+
+        // Verificar se a foto existe
+        if (!photo) {
+            return res.status(404).json({ errors: ['Foto não encontrada.'] });
+        }
+
+        // Verificar se a foto pertence ao usuário autenticado
+        if (!photo.userId.equals(reqUser._id)) {
+            return res.status(403).json({ errors: ['Você não tem permissão para atualizar esta foto.'] });
+        }
+
+        // Atualizar o título, se fornecido
+        if (title) {
+            photo.title = title;
+        }
+
+        await photo.save();
+
+        res.status(200).json({ photo, message: 'Foto atualizada com sucesso!' });
+    } catch (error) {
+        res.status(500).json({ errors: ['Erro no servidor.'] });
+    }
+};
 module.exports = {
     insertPhoto,
     deletePhoto,
     getAllPhotos,
     getUserPhotos,
     getPhotoById,
+    updatePhoto,
 };
