@@ -1,38 +1,66 @@
-const Photo = require('../models/Photo')
-const User = require('../models/User')
+const Photo = require('../models/Photo');
+const User = require('../models/User');
+const mongoose = require('mongoose');
 
-const mongoose = require('mongoose')
+// Insert a photo, with a user related to it
+const insertPhoto = async (req, res) => {
+    const { title } = req.body;
+    const image = req.file?.filename;  // Verificação opcional
 
-// Insert a photo, with an user related to it
-const insertPhoto = async(req, res) =>{
+    const reqUser = req.user;
 
-    const {title} = req.body
-    const image = req.file.filename
+    try {
+        const user = await User.findById(reqUser._id);
 
-    const reqUser = req.user
+        if (!user) {
+            return res.status(404).json({ errors: ['Usuário não encontrado.'] });
+        }
 
-    const user = await User.findById(reqUser._id)
+        // Create a photo
+        const newPhoto = await Photo.create({
+            image,
+            title,
+            userId: user._id,
+            userName: user.name,
+        });
 
-    // Create a photo
-    const newPhoto = await Photo.create({
-        image,
-        title,
-        userId: user._id,
-        userName: user.name,
-    })
-
-    // If photo was created sucessfully, return data
-    if(!newPhoto){
-
-        res.status(422).json({
-            errors: ['Houve um problema, por favor tente novamente mais tarde.']
-        })
-
+        res.status(201).json(newPhoto);
+    } catch (error) {
+        res.status(500).json({ errors: ['Erro no servidor. Tente novamente mais tarde.'] });
     }
+};
 
-    res.status(201).json(newPhoto)
-}
+// Remove a photo from DB
+const deletePhoto = async (req, res) => {
+    const { id } = req.params;
+    const reqUser = req.user;
+
+    try {
+        // Validate ObjectId format
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(404).json({ errors: ['Foto não encontrada.'] });
+        }
+
+        const photo = await Photo.findById(id);
+
+        if (!photo) {
+            return res.status(404).json({ errors: ['Foto não encontrada.'] });
+        }
+
+        // Check if photo belongs to user
+        if (photo.userId.toString() !== reqUser._id.toString()) {
+            return res.status(403).json({ errors: ['Você não tem permissão para excluir esta foto.'] });
+        }
+
+        await Photo.findByIdAndDelete(photo._id);
+
+        res.status(200).json({ id: photo._id, message: 'Foto excluída com sucesso.' });
+    } catch (error) {
+        res.status(500).json({ errors: ['Erro no servidor. Tente novamente mais tarde.'] });
+    }
+};
 
 module.exports = {
     insertPhoto,
-}
+    deletePhoto,
+};
