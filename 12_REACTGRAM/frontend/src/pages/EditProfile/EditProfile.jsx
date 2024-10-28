@@ -1,6 +1,6 @@
 import './EditProfile.css'
 
-// import {uploads} from '../../utils/config'
+import {uploads} from '../../utils/config'
 
 // Hooks
 import { useEffect, useState } from 'react'
@@ -11,6 +11,7 @@ import {profile, resetMessage} from '../../slices/userSlice'
 
 // Components
 import Message from '../../components/Message'
+import { upload } from '../../utils/config'
 
 const EditProfile = () => {
 
@@ -49,7 +50,7 @@ const EditProfile = () => {
         e.preventDefault()
     }
 
-    const handleFile = (e) =>{
+    const handleFile = (e) => {
         // image preview
         const image = e.target.files[0]
 
@@ -57,14 +58,16 @@ const EditProfile = () => {
 
         // update image state
         setProfile(image)
-    }
+    
     }
 
   return (
     <div id='edit-profile'>
         <h2>Edite seus dados</h2>
         <p className="subtitle">Adicione uma imagem de perfil e conte mais sobre você...</p>
-        {/* preview da imagem */}
+        {(user.profileImage || previewImage) &&(
+            <img className='profile-image' src={previewImage ? URL.createObjectURL(previewImage) : `${uploads}/users/${user.profileImage}`} alt={user.name}  />
+        )}
         <form onSubmit={handleSubmit}>
             <input type="text" placeholder='Nome' onChange={(e) => setName(e.target.value)} value={name || ''} />
             <input type="email" placeholder='E-mail' disabled value={email || ''} />
