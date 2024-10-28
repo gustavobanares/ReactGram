@@ -49,6 +49,17 @@ const EditProfile = () => {
         e.preventDefault()
     }
 
+    const handleFile = (e) =>{
+        // image preview
+        const image = e.target.files[0]
+
+        setPreviewImage(image)
+
+        // update image state
+        setProfile(image)
+    }
+    }
+
   return (
     <div id='edit-profile'>
         <h2>Edite seus dados</h2>
@@ -59,7 +70,7 @@ const EditProfile = () => {
             <input type="email" placeholder='E-mail' disabled value={email || ''} />
             <label>
                 <span>Imagem do Perfil:</span>
-                <input type="file" />
+                <input type="file" onChange={handleFile} />
             </label>
             <label>
                 <span>Bio:</span>
