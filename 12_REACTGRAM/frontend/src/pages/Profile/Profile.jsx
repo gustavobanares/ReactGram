@@ -5,16 +5,14 @@ import { uploads } from '../../utils/config';
 // components
 import Message from '../../components/Message';
 import { Link } from 'react-router-dom';
-import { BsFillEyeFill, BsPencilFill, BsXLg } from 'react-icons/bs';
-
-// hooks
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 
 // redux
 import { getUserDetails } from '../../slices/userSlice';
 import { publishPhoto, resetMessage, getUserPhotos } from '../../slices/photoSlice';
+import { BsFillEyeFill, BsPencilFill, BsXLg } from 'react-icons/bs';
 
 const Profile = () => {
     const { id } = useParams();
@@ -111,7 +109,13 @@ const Profile = () => {
                                         <img src={`${uploads}/photos/${photo.image}`} alt={photo.title} />
                                     )}
                                     {id === userAuth._id ? (
-                                        <p>actions</p>
+                                        <div className='actions'>
+                                            <Link to={`/photos/${photo._id}`}>
+                                                <BsFillEyeFill />
+                                            </Link>
+                                            <BsPencilFill />
+                                            <BsXLg />
+                                        </div>
                                     ) : (
                                         <Link className="btn" to={`/photos/${photo._id}`}>Ver</Link>
                                     )}
