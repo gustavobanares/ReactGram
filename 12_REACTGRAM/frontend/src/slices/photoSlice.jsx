@@ -10,6 +10,25 @@ const initialState = {
   message: null,
 };
 
+// Publish user photo
+export const publishPhoto = createAsyncThunk(
+    'photo/publish',
+    async(photo, thunkAPI) =>{
+
+        const token = thunkAPI.getState().auth.user.token
+
+        const data = await photoService.publishPhoto(photo, token)
+
+        // Check for errors
+        if(data.errors){
+            return thunkAPI.rejectWithValue(data.errors[0])
+        }
+
+        return data
+
+    }
+)
+
 // Thunk para buscar todas as fotos
 export const fetchPhotos = createAsyncThunk(
   'photo/fetchPhotos',
@@ -46,34 +65,25 @@ export const photoSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchPhotos.pending, (state) => {
+      .addCase(publishPhoto.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
-      .addCase(fetchPhotos.fulfilled, (state, action) => {
+      .addCase(publishPhoto.fulfilled, (state, action) => {
         state.loading = false;
-        state.photos = action.payload;
         state.success = true;
+        state.error = null;
+        state.photo = action.payload;
+        state.photos.unshift(state.photo)
+        state.message = 'Foto publicada com sucesso!'
       })
-      .addCase(fetchPhotos.rejected, (state, action) => {
+      .addCase(publishPhoto.rejected, (state, action) => {
         state.loading = false;
-        state.error = true;
-        state.message = action.payload;
+        state.error = action.payload;
+        state.photo = {};
       })
-      .addCase(createPhoto.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(createPhoto.fulfilled, (state, action) => {
-        state.loading = false;
-        state.photos.push(action.payload);
-        state.success = true;
-      })
-      .addCase(createPhoto.rejected, (state, action) => {
-        state.loading = false;
-        state.error = true;
-        state.message = action.payload;
-      });
-  },
-});
+}
+})
 
 export const { resetMessage } = photoSlice.actions;
 export default photoSlice.reducer;
