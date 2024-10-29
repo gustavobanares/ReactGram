@@ -173,7 +173,7 @@ export const photoSlice = createSlice({
         state.success = true;
         state.error = null;
         
-        state.photo.map((photo) =>{
+        state.photos.map((photo) =>{
           if(photo.id === action.payload.photo._id) {
             return photo.title = action.payload.photo.title
           }
