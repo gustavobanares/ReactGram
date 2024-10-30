@@ -58,9 +58,12 @@ const Profile = () => {
         const formData = new FormData();
         Object.keys(photoData).forEach((key) => formData.append(key, photoData[key]));
 
-        dispatch(publishPhoto(formData));
+        dispatch(publishPhoto(formData)).then(() =>{
+            dispatch(getUserPhotos(id))
+        });
 
         setTitle('');
+        setImage('')
 
        resetComponentMessage()
     };
@@ -168,7 +171,7 @@ const Profile = () => {
                     ) : (
                         photos.length > 0 ? (
                             photos.map((photo) => (
-                                <div className="photo" key={photo._id}>
+                                <div className="photo" key={photo._id || photo.title + Math.random()} >
                                     {photo.image && (
                                         <img src={`${uploads}/photos/${photo.image}`} alt={photo.title} />
                                     )}
