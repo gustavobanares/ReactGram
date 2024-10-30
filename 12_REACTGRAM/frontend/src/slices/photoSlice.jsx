@@ -233,7 +233,7 @@ export const photoSlice = createSlice({
         }
         
         state.photos.map((photo) =>{
-          if(photo.id === action.payload.photo.photoId) {
+          if(photo.id === action.payload.photoId) {
             return photo.likes.push(action.payload.userId)
           }
           return photo
