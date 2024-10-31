@@ -65,11 +65,11 @@ export const deletePhoto = createAsyncThunk(
 // Update a photo
 export const updatePhoto = createAsyncThunk(
   'photo/update',
-  async(photoData, thunkAPI) =>{
+  async(commentData, thunkAPI) =>{
 
     const token = thunkAPI.getState().auth.user.token
 
-    const data = await photoService.updatePhoto({title: photoData.title}, photoData.id, token)
+    const data = await photoService.updatePhoto({title: commentData.title}, commentData.id, token)
 
     // Check for errors
     if(data.errors){
