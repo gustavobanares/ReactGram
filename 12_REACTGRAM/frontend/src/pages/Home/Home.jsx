@@ -1,58 +1,59 @@
-import './Home.css'
+import "./Home.css";
 
-// Components
-import LikeContainer from '../../components/LikeContainer'
-import PhotoItem from '../../components/PhotoItem'
-import { Link } from 'react-router-dom'
+// components
+import LikeContainer from "../../components/LikeContainer";
+import PhotoItem from "../../components/PhotoItem";
+import { Link } from "react-router-dom";
 
-// Hooks
-import { useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { useResetComponentMessage } from '../../hooks/useResetComponentMessage'
+// hooks
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useResetComponentMessage } from "../../hooks/useResetComponentMessage";
 
 // Redux
-import { getPhotos, like } from '../../slices/photoSlice'
+import { getPhotos, like } from "../../slices/photoSlice";
 
 const Home = () => {
-  const dispatch = useDispatch()
-  const resetMessage = useResetComponentMessage(dispatch)
+  const dispatch = useDispatch();
+  const resetMessage = useResetComponentMessage(dispatch);
 
-  const { user } = useSelector((state) => state.auth)
-  const { photos, loading } = useSelector((state) => state.photo)
+  const { user } = useSelector((state) => state.auth);
+  const { photos, loading } = useSelector((state) => state.photo);
 
   // Load all photos
   useEffect(() => {
-    dispatch(getPhotos())
-  }, [dispatch])
+    dispatch(getPhotos());
+  }, [dispatch]);
 
-  // Like a photo
-  const handleLike = async (photo) => {
-    await dispatch(like(photo._id))
-    resetMessage()
-    dispatch(getPhotos()) // Atualiza a lista de fotos após dar like
-  }
+  const handleLike = (photo = null) => {
+    dispatch(like(photo._id));
+    resetMessage();
+  };
 
   if (loading) {
-    return <p>Carregando...</p>
+    return <p>Carregando...</p>;
   }
 
   return (
-    <div id='home'>
-      {photos && photos.length > 0 ? (
+    <div id="home">
+      {Array.isArray(photos) && photos.length > 0 ? (
         photos.map((photo) => (
           <div key={photo._id}>
             <PhotoItem photo={photo} />
             <LikeContainer photo={photo} user={user} handleLike={handleLike} />
-            <Link className='btn' to={`/photos/${photo._id}`}>Ver mais</Link>
+            <Link className="btn" to={`/photos/${photo._id}`}>
+              Ver mais
+            </Link>
           </div>
         ))
       ) : (
         <h2 className="no-photos">
-          Ainda não há fotos publicadas, <Link to={`/users/${user._id}`}>clique aqui</Link>
+          Ainda não há fotos publicadas,{" "}
+          <Link to={`/users/${user.userId}`}>clique aqui</Link> para começar.
         </h2>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
