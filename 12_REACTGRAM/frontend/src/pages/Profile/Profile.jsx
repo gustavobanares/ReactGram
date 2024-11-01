@@ -18,7 +18,7 @@ const Profile = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
 
-    const { user = {}, loading } = useSelector((state) => state.user);
+    const { user, loading } = useSelector((state) => state.user);
     const { user: userAuth } = useSelector((state) => state.auth);
     const { photos = [], loading: loadingPhoto, message: messagePhoto, error: errorPhoto } = useSelector((state) => state.photo);
 
@@ -120,12 +120,12 @@ const Profile = () => {
     return (
         <div id="profile">
             <div className="profile-header">
-                {user?.profileImage && (
+                {user.profileImage && (
                     <img src={`${uploads}/users/${user.profileImage}`} alt={user.name} />
                 )}
                 <div className="profile-description">
-                    <h2>{user?.name}</h2>
-                    <p>{user?.bio}</p>
+                    <h2>{user.name}</h2>
+                    <p>{user.bio}</p>
                 </div>
             </div>
             {id === userAuth._id && (
