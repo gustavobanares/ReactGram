@@ -29,11 +29,12 @@ const Search = () => {
     dispatch(searchPhotos(search));
   }, [dispatch, search]);
 
-  const handleLike = (photo = null) => {
-    dispatch(like(photo._id));
+  const handleLike = async (photo) => {
+    await dispatch(like(photo._id));  // Espera a atualização do like
+    dispatch(searchPhotos(search));   // Atualiza a lista de fotos para refletir o like
     resetMessage();
   };
-
+  
   if (loading) {
     return <p>Carregando...</p>;
   }

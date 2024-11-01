@@ -92,7 +92,7 @@ const getPhoto = async(id, token) =>{
 // Like a photo
 const like = async(id, token) =>{
 
-    const config = requestConfig('PUT', null, token)
+    const config = requestConfig('PUT', {}, token)
 
     try {
         
