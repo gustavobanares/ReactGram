@@ -42,11 +42,11 @@ API_KEY=your_api_key
 DATABASE_URI=your_mongo_uri
 UPLOAD_PATH=your_upload_path
 ```
-4. Start the development server:
+5. Start the development server:
 ```bash
 npm run dev
 ```
-5. Open http://localhost:5173/ in your browser to use reactgram.
+6. Open http://localhost:5173/ in your browser to use reactgram.
 
 ## 🌐 Project Link
 
